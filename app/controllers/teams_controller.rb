@@ -49,10 +49,10 @@ class TeamsController < ApplicationController
   end
   
   def changeowner
-    @changed_owner = @team.owner_id
     @changing_owner = params[:assign_user_id]
-    if @team.update_attribute(owner_id, @changing_owner.to_i)
+    if @team.update_attribute(:owner_id, @changing_owner.to_i)
       redirect_to team_url, notice: 'リーダー権限を移動しました！'
+      ChangeownerMailer.changeowner_mail(@team).deliver
     else
       redirect_to team_url, notice: 'リーダー権限の移動に失敗しました、、'
     end
