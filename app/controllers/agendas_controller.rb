@@ -1,5 +1,5 @@
 class AgendasController < ApplicationController
-  # before_action :set_agenda, only: %i[show edit update destroy]
+  before_action :set_agenda, only: %i[show edit update destroy]
 
   def index
     @agendas = Agenda.all
@@ -18,6 +18,20 @@ class AgendasController < ApplicationController
       redirect_to dashboard_url, notice: I18n.t('views.messages.create_agenda') 
     else
       render :new
+    end
+  end
+
+  def destroy
+    team_members = @agenda.team.members
+    if current_user.id != @agenda.user_id && current_user.id != @agenda.team.owner_id
+      redirect_to dashboard_url, notice: "agendaの作成者またはチーム管理者のみ削除できます。"
+    elsif @agenda.destroy
+      team_members.each do | member |
+        DeleteMailer.delete_mail(member.email).deliver
+      end
+      redirect_to dashboard_url, notice: I18n.t('views.messages.delete_agenda')
+    else
+      redirect_to dashboard_url, notice: '削除に失敗しました。'
     end
   end
 
